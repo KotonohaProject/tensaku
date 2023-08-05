@@ -1,0 +1,1 @@
+from tensaku.src.quiz_generator.generator import QuizGenerator
