@@ -1,1 +1,1 @@
-from tensaku_generator import TensakuGenerator
+from .tensaku_generator import TensakuGenerator
