@@ -1,5 +1,14 @@
 ## tensaku
-Tensaku package
+Tensaku package.
+
+This package is used for tensaku and cyten(giving scores on essays) only.
+Creating UI (HTML, PDF, ...) around the result should be handled somewhere else.
+
+# Installation
+
+1. Set openai api key according to the official documentation
+2. Setup authentication to have access to this repo.
+3. poetry add git+ssh://git@github.com:KotonohaProject/tensaku.git
 
 # Usage
 
