@@ -8,7 +8,7 @@ Creating UI (HTML, PDF, ...) around the result should be handled somewhere else.
 
 1. Set openai api key according to the official documentation
 2. Setup ssh authenticatio, so that your project will have access to this repo. (Using deploy key is recommended)
-4. poetry add git+ssh://git@github.com:KotonohaProject/tensaku.git#v0.2.0
+4. poetry add git+ssh://git@github.com-tensaku:KotonohaProject/tensaku.git#v0.2.0
 
 # Usage
 
