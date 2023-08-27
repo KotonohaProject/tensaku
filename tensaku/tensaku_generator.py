@@ -52,6 +52,9 @@ class TensakuGenerator():
         assert explanation_language in self.AVAILABLE_EXPLANATION_LANGUAGES, f"explanation_language must be one of {self.AVAILABLE_EXPLANATION_LANGUAGES}"
         assert writing_language in self.AVAILABLE_WRITING_LANGUAGES, f"writing_language must be one of {self.AVAILABLE_WRITING_LANGUAGES}"
         self.explanation_language = explanation_language
+        
+        self.japanese = True if explanation_language == 'ja' else False #TODO This is a temporary solution. We need to make this more general.
+        
         self.writing_language = writing_language
         self.all_tensaku_document = None
     
