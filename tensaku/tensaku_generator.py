@@ -48,10 +48,10 @@ class TensakuGenerator():
     AVAILABLE_EXPLANATION_LANGUAGES = ['ja']
     AVAILABLE_WRITING_LANGUAGES = ['en']
     
-    def __init__(self, ui_language: str = "ja", writing_language: str = "en") -> None:
-        assert self.explanation_language in self.AVAILABLE_EXPLANATION_LANGUAGES, f"ui_language must be one of {self.AVAILABLE_EXPLANATION_LANGUAGES}"
-        assert self.writing_language in self.AVAILABLE_WRITING_LANGUAGES, f"writing_language must be one of {self.AVAILABLE_WRITING_LANGUAGES}"
-        self.explanation_language = ui_language
+    def __init__(self, explanation_language: str = "ja", writing_language: str = "en") -> None:
+        assert explanation_language in self.AVAILABLE_EXPLANATION_LANGUAGES, f"explanation_language must be one of {self.AVAILABLE_EXPLANATION_LANGUAGES}"
+        assert writing_language in self.AVAILABLE_WRITING_LANGUAGES, f"writing_language must be one of {self.AVAILABLE_WRITING_LANGUAGES}"
+        self.explanation_language = explanation_language
         self.writing_language = writing_language
         self.all_tensaku_document = None
     
