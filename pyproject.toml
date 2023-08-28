@@ -13,6 +13,13 @@ dacite = "^1.8.1"
 
 [tool.poetry.group.dev.dependencies]
 jupyterlab = "^4.0.4"
+pytest = "^7.4.0"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+pythonpath = "tensaku"
 
 [build-system]
 requires = ["poetry-core"]

@@ -441,6 +441,19 @@ class AllTensakuDocument(TensakuDocument):
     VERSION: str = "0.0.1"
     
     def generate_dict(self) -> dict:
+        sentence_wise_explanations_list = []
+        
+        for mistake_explanations in self.sentence_wise_explanations:
+            sentence_wise_explanations_list.append({
+                "original_sentence": mistake_explanations.original_sentence,
+                "edited_sentence": mistake_explanations.edited_sentence,
+                "mistake_explanations": [{
+                    "mistake_type": mistake_explanation.mistake_type,
+                    "explanation": mistake_explanation.explanation,
+                } for mistake_explanation in mistake_explanations.mistake_explanations],
+                "complement_comment": mistake_explanations.complement_comment,
+            })
+        
         return {
             "version": self.VERSION,
             "original_paragraph": self.original_paragraph,
@@ -448,7 +461,7 @@ class AllTensakuDocument(TensakuDocument):
             "native_paragraph": self.native_paragraph,
             "native_explanation": self.native_explanation.explanation,
             "comment": self.comment,
-            "sentence_wise_explanations": [sentence_explanation.__dict__ for sentence_explanation in self.sentence_wise_explanations],
+            "sentence_wise_explanations": sentence_wise_explanations_list,
             "quizzes": self.quizzes,
         }
     
