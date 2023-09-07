@@ -5,6 +5,7 @@ from typing import Optional, Callable
 import subprocess
 import json
 from datetime import datetime
+from retry import retry
 
         
 @dataclass
@@ -19,8 +20,9 @@ class GPTConfig():
 
 class ParsingError(Exception):
     pass
-  
-  
+
+
+@retry(tries=3, delay=5, backoff=2)
 def create_completion(prompt,
                       print_prompt=False,
                       gpt_config: GPTConfig = GPTConfig(),
@@ -42,6 +44,7 @@ def create_completion(prompt,
     else:
       return result['choices'][0]['text']
 
+@retry(tries=3, delay=5, backoff=2)
 def create_chat(messages,
                 gpt_config: GPTConfig = GPTConfig(model="gpt-4"),
                 clean_output = True):
