@@ -84,8 +84,8 @@ class TensakuGenerator():
 
         all_tensaku_document = AllTensakuDocument(
             original_paragraph = essay.paragraph,
-            edited_paragraph = corrected_essay.paragraph,
-            native_paragraph = native_example.paragraph,
+            edited_paragraph = corrected_essay.paragraph if corrected_essay != None else "",
+            native_paragraph = native_example.paragraph if native_example != None else "",
             native_explanation=native_explanation,
             comment = comment,
             sentence_wise_explanations = all_explanations,
