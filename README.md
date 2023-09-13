@@ -13,10 +13,12 @@ Creating UI (HTML, PDF, ...) around the result should be handled somewhere else.
 # Usage
 
 ```python
-from tensaku import TensakuGenerator
+from tensaku import TensakuGenerator, score_essay
 
 generator = TensakuGenerator()
-result = generator.generate(essay_text="I love learning English", generate_quiz=True, generate_comment=True, generate_native_example=True, generate_native_explanation=True)
+essay = "I love learning English"
+result = generator.generate(essay_text=essay, generate_quiz=True, generate_comment=True, generate_native_example=True, generate_native_explanation=True)
+score, comment = score_essay(essay)
 ```
 
 Result returned from TensakuGenerator is a python dataclass. Refer here https://github.com/KotonohaProject/tensaku/blob/main/tensaku/src/documents.py#L495.
