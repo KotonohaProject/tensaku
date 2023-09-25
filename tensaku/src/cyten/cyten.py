@@ -3,7 +3,7 @@ from tensaku.utils.openai_utils import create_chat_and_parse
 
 def score_essay(essay: str):
     
-    prompt = f"""生徒のエッセイを採点してください。
+    prompt = f"""生徒のエッセイを日本語で採点してください。
 採点基準
 - 内容●構成
 - 語彙
