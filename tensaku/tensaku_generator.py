@@ -58,7 +58,7 @@ class TensakuGenerator():
         self.writing_language = writing_language
         self.all_tensaku_document = None
     
-    def generate(self, essay_text: str, generate_quiz=True, generate_comment=True, generate_native_example=True, generate_native_explanation=True) -> AllTensakuDocument:
+    def generate(self, essay_text: str, generate_quiz=False, generate_comment=True, generate_native_example=True, generate_native_explanation=True) -> AllTensakuDocument:
         #TODO Process emoji and stuff, so that any text can be split into sentences.
         
         essay_text = self._preprocess(essay_text)
