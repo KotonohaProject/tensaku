@@ -3,7 +3,7 @@ import re
 from uuid import uuid1
 from typing import List
 from typing import Type, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 
 
@@ -462,7 +462,7 @@ class AllTensakuDocument(TensakuDocument):
             "original_paragraph": self.original_paragraph,
             "edited_paragraph": self.edited_paragraph,
             "native_paragraph": self.native_paragraph,
-            "native_explanation": self.native_explanation.explanations,
+            "native_explanation": asdict(self.native_explanation.explanations),
             "comment": self.comment,
             "sentence_wise_explanations": sentence_wise_explanations_list,
             "quizzes": self.quizzes,
