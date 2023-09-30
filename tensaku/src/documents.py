@@ -457,12 +457,19 @@ class AllTensakuDocument(TensakuDocument):
                 "complement_comment": mistake_explanations.complement_comment,
             })
         
+        native_explanation_list = []
+        for native_explanation in self.native_explanation.explanations:
+            native_explanation_list.append({
+                "expression": native_explanation.expression,
+                "explanation": native_explanation.expression_explanation,
+            })
+        
         return {
             "version": self.VERSION,
             "original_paragraph": self.original_paragraph,
             "edited_paragraph": self.edited_paragraph,
             "native_paragraph": self.native_paragraph,
-            "native_explanation": asdict(self.native_explanation.explanations),
+            "native_explanation": native_explanation_list,
             "comment": self.comment,
             "sentence_wise_explanations": sentence_wise_explanations_list,
             "quizzes": self.quizzes,
