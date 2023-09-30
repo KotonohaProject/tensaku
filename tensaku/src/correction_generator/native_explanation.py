@@ -1,8 +1,9 @@
-from tensaku.utils.openai_utils import create_chat, GPTConfig
+from tensaku.utils.openai_utils import create_chat, GPTConfig, create_chat_and_parse
 from tensaku.src.explanation_generator.generatorbase import ExplanationGenerator
-from tensaku.src.documents import NativeExplanationDocument
+from tensaku.src.documents import NativeExplanationDocument, ExpressionDocument
 
 from typing import List
+import re
 
 class NativeExplanationGenerator(ExplanationGenerator):
     
@@ -48,12 +49,31 @@ let off steam または let off some steam といいます。
     def generate(self, original: str, edited: str) -> NativeExplanationDocument:
         
         if original == edited:
-            return NativeExplanationDocument(explanation="", exists=False)
+            return NativeExplanationDocument(explanations=[], exists=False)
         
         messages = self.initial_conversation + [{
             "role": "user", "content": f"Original: {original}\nEdited: {edited}"
         }]
-        result = create_chat(messages=messages, gpt_config=self.gpt_config)
+        
+        
+        def parsing_function(text):
+          expressions_list = []
 
-        return NativeExplanationDocument(explanation=result)
+          # Find all expressions and their explanations using Regex
+          expression_pattern = re.compile(r'# (.+?)\n((?:- [^\n]+\n)+)((?:[^#]+)?)', re.S)
+          matches = expression_pattern.findall(text)
+
+          for match in matches:
+              expression_dict = {}
+              expression_dict['expression'] = match[0]
+              expression_dict['explanation'] = match[1] + match[2]
+              expressions_list.append(expression_dict)
+          
+          return expressions_list
+        
+        result = create_chat_and_parse(messages=messages, gpt_config=self.gpt_config, parsing_function=parsing_function)
+        
+        explanations = [ExpressionDocument(one_result['expression'], one_result['explanation']) for one_result in result]
+        
+        return NativeExplanationDocument(explanations=explanations)
     

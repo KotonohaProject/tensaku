@@ -12,33 +12,36 @@ class TensakuDocument(ABC):
 
 
 @dataclass
+class ExpressionDocument():
+    expression: str
+    expression_explanation: str
+
+@dataclass
 class NativeExplanationDocument(TensakuDocument):
-    explanation: str
+    explanations: list[ExpressionDocument]
     exists: bool = True
 
     def generate_html(self) -> str:
         # convert markdown list to html list, and linebreak to <br>.
-        lines = self.explanation.split("\n")
         in_list = False
         html_list = []
-
-        for line in lines:
-            if line.startswith("- "):
-                if not in_list:
-                    html_list.append("<ul>")
-                    in_list = True
-                html_list.append(f"  <li>{line[2:]}</li>")
-            elif line.startswith("#"):
-                html_list.append(f"<h3>{line[2:]}</h3>")
-            else:
-                if in_list:
-                    html_list.append("</ul>")
-                    in_list = False
+        
+        for explanation in self.explanations:
+            html_list.append(f"<h3>{explanation.expression}</h3>")
+            lines = explanation.expression_explanation.split("\n")
+            
+            for line in lines:
+                if line.startswith("- "):
+                    if not in_list:
+                        html_list.append("<ul>")
+                        in_list = True
+                    html_list.append(f"  <li>{line[2:]}</li>")
+                else:
+                    if in_list:
+                        html_list.append("</ul>")
+                        in_list = False
                 html_list.append(f"{line}<br>")
-
-        if in_list:
-            html_list.append("</ul>")
-
+        
         explanation =  "\n".join(html_list)
         
         return explanation
@@ -459,7 +462,7 @@ class AllTensakuDocument(TensakuDocument):
             "original_paragraph": self.original_paragraph,
             "edited_paragraph": self.edited_paragraph,
             "native_paragraph": self.native_paragraph,
-            "native_explanation": self.native_explanation.explanation,
+            "native_explanation": self.native_explanation.explanations,
             "comment": self.comment,
             "sentence_wise_explanations": sentence_wise_explanations_list,
             "quizzes": self.quizzes,
