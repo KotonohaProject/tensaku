@@ -17,10 +17,25 @@ class GPTConfig():
   presence_penalty: float = 0
   frequency_penalty: float = 0
   
+  def get_azure_deployment_id(self, model: str) -> str:
+    conversion_dictionary = {
+        "gpt-4": "gpt4",
+        "gpt-3.5-turbo": "gpt35",
+    }
+    return conversion_dictionary.get(model, model)
+  
 
 class ParsingError(Exception):
     pass
 
+
+def get_azure_deployment_id(model: str) -> str:
+    conversion_dictionary = {
+        "gpt-4": "gpt4",
+        "gpt-3.5-turbo": "gpt35",
+    }
+    return conversion_dictionary.get(model, model)
+    
 
 @retry(tries=3, delay=5, backoff=2)
 def create_completion(prompt,
@@ -31,7 +46,8 @@ def create_completion(prompt,
       print(prompt)
     result = openai.Completion.create(
       prompt=prompt,
-      model=gpt_config.model,
+      model=gpt_config.model if openai.api_type == "open_ai" else None,
+      deployment_id = gpt_config.get_azure_deployment_id() if openai.api_type == "azure" else None,
       top_p=gpt_config.top_p,
       presence_penalty=gpt_config.presence_penalty,
       frequency_penalty=gpt_config.frequency_penalty,
@@ -54,7 +70,8 @@ def create_chat(messages,
     
     result = openai.ChatCompletion.create(
       messages=messages,
-      model=gpt_config.model,
+      model=gpt_config.model if openai.api_type == "open_ai" else None,
+      deployment_id = gpt_config.get_azure_deployment_id() if openai.api_type == "azure" else None,
       top_p=gpt_config.top_p,
       presence_penalty=gpt_config.presence_penalty,
       frequency_penalty=gpt_config.frequency_penalty,
