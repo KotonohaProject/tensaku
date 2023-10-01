@@ -12,6 +12,11 @@ Creating UI (HTML, PDF, ...) around the result should be handled somewhere else.
 
 # Usage
 
+Set the following environmental variables
+- OPENAI_API_KEY
+- OPENAI_API_TYPE (Only when using azure)
+- OPENAI_API_BASE (Only when using azure)
+
 ```python
 from tensaku import TensakuGenerator, score_essay
 
