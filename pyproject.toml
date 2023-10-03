@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tensaku"
-version = "0.8.1a"
+version = "0.8.3"
 description = ""
 authors = ["ShinnosukeUesaka <shinnosuke.uesaka@gmail.com>"]
 readme = "README.md"
