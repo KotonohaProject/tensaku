@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 from retry import retry
 
-        
+
 @dataclass
 class GPTConfig():
   model: str = "text-davinci-003"
@@ -16,14 +16,14 @@ class GPTConfig():
   top_p: float = 1
   presence_penalty: float = 0
   frequency_penalty: float = 0
-  
+
   def get_azure_deployment_id(self, model: str) -> str:
     conversion_dictionary = {
-        "gpt-4": "gpt4",
-        "gpt-3.5-turbo": "gpt35",
+        "gpt-4": "gpt-4",
+        "gpt-3.5-turbo": "gpt-35",
     }
     return conversion_dictionary.get(model, model)
-  
+
 
 class ParsingError(Exception):
     pass
@@ -31,11 +31,11 @@ class ParsingError(Exception):
 
 def get_azure_deployment_id(model: str) -> str:
     conversion_dictionary = {
-        "gpt-4": "gpt4",
-        "gpt-3.5-turbo": "gpt35",
+        "gpt-4": "gpt-4",
+        "gpt-3.5-turbo": "gpt-35",
     }
     return conversion_dictionary.get(model, model)
-    
+
 
 @retry(tries=3, delay=5, backoff=2)
 def create_completion(prompt,
@@ -47,14 +47,14 @@ def create_completion(prompt,
     result = openai.Completion.create(
       prompt=prompt,
       model=gpt_config.model if openai.api_type == "open_ai" else None,
-      deployment_id = gpt_config.get_azure_deployment_id() if openai.api_type == "azure" else None,
+      deployment_id = gpt_config.get_azure_deployment_id(gpt_config.model) if openai.api_type == "azure" else None,
       top_p=gpt_config.top_p,
       presence_penalty=gpt_config.presence_penalty,
       frequency_penalty=gpt_config.frequency_penalty,
       max_tokens=gpt_config.max_tokens,
       temperature=gpt_config.temperature
     )
-    
+
     if clean_output:
       return result['choices'][0]['text'].strip()
     else:
@@ -67,11 +67,11 @@ def create_chat(messages,
     print("------------------------------------")
     print(messages)
     print("------------------------------------")
-    
+
     result = openai.ChatCompletion.create(
       messages=messages,
       model=gpt_config.model if openai.api_type == "open_ai" else None,
-      deployment_id = gpt_config.get_azure_deployment_id() if openai.api_type == "azure" else None,
+      deployment_id = gpt_config.get_azure_deployment_id(gpt_config.model) if openai.api_type == "azure" else None,
       top_p=gpt_config.top_p,
       presence_penalty=gpt_config.presence_penalty,
       frequency_penalty=gpt_config.frequency_penalty,
@@ -83,19 +83,19 @@ def create_chat(messages,
       return result['choices'][0].message.content.strip()
     else:
       return result['choices'][0].message.content
-    
+
 def create_chat_and_parse(messages, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(model="gpt-4"), clean_output = True, max_tries=2):
     return generate_and_parse(gpt_function=lambda gpt_config: create_chat(messages, gpt_config, clean_output),
                        parsing_function=parsing_function,
                        gpt_config=gpt_config,
                        max_tries=max_tries)
-    
+
 def create_completion_and_parse(prompt, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(), clean_output = True, max_tries=2):
     return generate_and_parse(gpt_function=lambda gpt_config: create_completion(prompt, gpt_config, clean_output),
                        parsing_function=parsing_function,
                        gpt_config=gpt_config,
                        max_tries=max_tries)
-    
+
 def generate_and_parse(gpt_function: Callable[[GPTConfig], str], parsing_function: Callable[[str], any], gpt_config, max_tries=2):
     # run gpt function until parsable.
     for i in range(max_tries):
@@ -109,16 +109,16 @@ def generate_and_parse(gpt_function: Callable[[GPTConfig], str], parsing_functio
             pass
     else:
         raise ParsingError(f"Failed to parse output. GPT output: \n{output}")
-    
+
     return parsed_output
-    
-  
+
+
 def fine_tune(X: list[str], y: list[str], base_model: str, new_model_suffix: str = None):
-    
+
     TRAIN_FILE_NAME_WITHOUT_EXTENSION = 'train'
     train_file_name = TRAIN_FILE_NAME_WITHOUT_EXTENSION + '.jsonl'
     prepared_file_name = TRAIN_FILE_NAME_WITHOUT_EXTENSION + '_prepared.jsonl'
-    
+
     prompts_completions = zip(X, y)
 
     # Open a file for writing
@@ -128,20 +128,20 @@ def fine_tune(X: list[str], y: list[str], base_model: str, new_model_suffix: str
             data = {'prompt': prompt, 'completion': completion}
             # Convert the dictionary to a JSON object and write it to the file
             f.write(json.dumps(data) + '\n')
-    
+
     subprocess.run(['openai', 'tools', 'fine_tunes.prepare_data', '-f', train_file_name, '-q'])
-    
+
     response = openai.File.create(
         file=open(prepared_file_name, "rb"),
         purpose='fine-tune'
     )
-    
+
     cloud_file_name = response['id']
-    
+
     return openai.FineTune.create(training_file=cloud_file_name,
                            model=base_model,
                            suffix=new_model_suffix)
-    
+
 def get_model_name_by_suffix(model_suffix: str) -> Optional[str]:
     """get finetune model name"""
     models = openai.FineTune.list().data
@@ -154,8 +154,8 @@ def get_latest_model_name_by_suffix(model_suffix: str) -> Optional[str]:
     models = get_model_name_by_suffix(model_suffix=model_suffix)
     if models == []:
         return None # no model found
-    
-    
+
+
     latest = None
     latest_str = None
     for s in models:
