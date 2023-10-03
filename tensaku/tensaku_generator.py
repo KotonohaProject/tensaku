@@ -34,10 +34,10 @@ def validate_text(text: str, max_words=150, min_words=5):
     if text == '':
         return "テキストを入力してください。"
     # check number of words
-    if len(text.split()) > max_words:
+    if len(text.split()) >= max_words:
         return f"{max_words}ワード以内で入力してください。"
     
-    if len(text.split()) < min_words:
+    if len(text.split()) <= min_words:
         return f"{min_words}ワード以上で入力してください。"
     
     return 'OK'
