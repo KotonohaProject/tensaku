@@ -34,7 +34,11 @@ def get_azure_deployment_id(model: str) -> str:
         "gpt-4": "gpt-4",
         "gpt-3.5-turbo": "gpt-35",
     }
-    return conversion_dictionary.get(model, model)
+    deployment_id = conversion_dictionary.get(model)
+    if deployment_id is None:
+        raise ValueError(f"model {model} is not supported in azure")
+      
+    return deployment_id
 
 
 @retry(tries=3, delay=5, backoff=2)

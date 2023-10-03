@@ -1,4 +1,4 @@
-from tensaku.utils.openai_utils import create_chat, GPTConfig, create_completion
+from tensaku.utils.openai_utils import create_chat, GPTConfig
 
 def create_comment(essay_text) -> str:
     config = GPTConfig(model='gpt-4', temperature=0.7)
@@ -10,8 +10,3 @@ def create_comment(essay_text) -> str:
         {"role": "user", "content": essay_text}
     ]
     return create_chat(initial_messages, config)
-
-def create_comment_with_japanese(essay_text):
-    order_prompt = "You are an English teacher. Write a friendly comment to the following student essay, and translate it to Japanese\n\n"
-    prompt = order_prompt + essay_text + '\n'
-    return create_completion(prompt)

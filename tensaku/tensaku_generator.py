@@ -3,7 +3,7 @@ from .src.correction_generator.native_explanation import NativeExplanationGenera
 
 
 
-from .src.edit_classifier.classifier import Classifier, MistakeType, Mistake, ClassifierChat
+from .src.edit_classifier.classifier import MistakeType, Mistake, Classifier
 from .src.explanation_generator.generatorbase import ExplanationGenerator
 from .src.explanation_generator.wordchoice import  WordChoiceGenerator
 from .src.explanation_generator.grammar import GrammarGenerator
@@ -27,7 +27,7 @@ import json
 import dataclasses
 
 
-from .src.comment_generator.comment import create_comment, create_comment_with_japanese
+from .src.comment_generator.comment import create_comment
 
 
 def validate_text(text: str, max_words=150, min_words=5):
@@ -142,7 +142,7 @@ class TensakuGenerator():
         all_mistakes = []
         for original_sentence, corrected_sentence in zip(original_essay.sentences, corrected_essay.sentences):
             sentence_explanations = []
-            sentence_mistakes = ClassifierChat().classify(original_sentence, corrected_sentence)
+            sentence_mistakes = Classifier().classify(original_sentence, corrected_sentence)
             all_mistakes.append(sentence_mistakes)
             
         return all_mistakes
