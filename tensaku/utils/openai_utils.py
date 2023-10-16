@@ -37,7 +37,7 @@ def get_azure_deployment_id(model: str) -> str:
     deployment_id = conversion_dictionary.get(model)
     if deployment_id is None:
         raise ValueError(f"model {model} is not supported in azure")
-      
+
     return deployment_id
 
 
@@ -88,19 +88,19 @@ def create_chat(messages,
     else:
       return result['choices'][0].message.content
 
-def create_chat_and_parse(messages, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(model="gpt-4"), clean_output = True, max_tries=2):
+def create_chat_and_parse(messages, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(model="gpt-4"), clean_output = True, max_tries=4):
     return generate_and_parse(gpt_function=lambda gpt_config: create_chat(messages, gpt_config, clean_output),
                        parsing_function=parsing_function,
                        gpt_config=gpt_config,
                        max_tries=max_tries)
 
-def create_completion_and_parse(prompt, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(), clean_output = True, max_tries=2):
+def create_completion_and_parse(prompt, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(), clean_output = True, max_tries=4):
     return generate_and_parse(gpt_function=lambda gpt_config: create_completion(prompt, gpt_config, clean_output),
                        parsing_function=parsing_function,
                        gpt_config=gpt_config,
                        max_tries=max_tries)
 
-def generate_and_parse(gpt_function: Callable[[GPTConfig], str], parsing_function: Callable[[str], any], gpt_config, max_tries=2):
+def generate_and_parse(gpt_function: Callable[[GPTConfig], str], parsing_function: Callable[[str], any], gpt_config, max_tries=4):
     # run gpt function until parsable.
     for i in range(max_tries):
         output = gpt_function(gpt_config)
