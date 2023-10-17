@@ -16,6 +16,7 @@ Set the following environmental variables
 - OPENAI_API_KEY
 - OPENAI_API_TYPE (Only when using azure)
 - OPENAI_API_BASE (Only when using azure)
+- OPENAI_API_VERSION="2023-07-01-preview"
 
 ```python
 from tensaku import TensakuGenerator, score_essay
