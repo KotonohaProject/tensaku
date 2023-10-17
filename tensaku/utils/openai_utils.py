@@ -117,7 +117,7 @@ def create_completion_and_parse(prompt, parsing_function: Callable, gpt_config: 
                        gpt_config=gpt_config,
                        max_tries=max_tries)
 
-def generate_and_parse(gpt_function: Callable[[GPTConfig], str], parsing_function: Callable[[str], any], gpt_config, max_tries=2):
+def generate_and_parse(gpt_function: Callable[[GPTConfig], str], parsing_function: Callable[[str], any], gpt_config, max_tries=4):
     # run gpt function until parsable.
     for i in range(max_tries):
         output = gpt_function(gpt_config)
