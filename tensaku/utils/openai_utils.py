@@ -37,7 +37,7 @@ def get_azure_deployment_id(model: str) -> str:
     deployment_id = conversion_dictionary.get(model)
     if deployment_id is None:
         raise ValueError(f"model {model} is not supported in azure")
-      
+
     return deployment_id
 
 
@@ -67,35 +67,52 @@ def create_completion(prompt,
 @retry(tries=3, delay=5, backoff=2)
 def create_chat(messages,
                 gpt_config: GPTConfig = GPTConfig(model="gpt-4"),
+                functions = None,
+                function_call = "auto",
                 clean_output = True):
     print("------------------------------------")
     print(messages)
     print("------------------------------------")
 
-    result = openai.ChatCompletion.create(
-      messages=messages,
-      model=gpt_config.model if openai.api_type == "open_ai" else None,
-      deployment_id = gpt_config.get_azure_deployment_id(gpt_config.model) if openai.api_type == "azure" else None,
-      top_p=gpt_config.top_p,
-      presence_penalty=gpt_config.presence_penalty,
-      frequency_penalty=gpt_config.frequency_penalty,
-      max_tokens=gpt_config.max_tokens,
-      temperature=gpt_config.temperature
-    )
-    print(result['choices'][0].message.content)
-    if clean_output:
-      return result['choices'][0].message.content.strip()
+    if functions:
+        result = openai.ChatCompletion.create(
+        messages=messages,
+        model=gpt_config.model if openai.api_type == "open_ai" else None,
+        function_call=function_call,
+        functions=functions,
+        deployment_id = gpt_config.get_azure_deployment_id(gpt_config.model) if openai.api_type == "azure" else None,
+        top_p=gpt_config.top_p,
+        presence_penalty=gpt_config.presence_penalty,
+        frequency_penalty=gpt_config.frequency_penalty,
+        max_tokens=gpt_config.max_tokens,
+        temperature=gpt_config.temperature
+        )
     else:
-      return result['choices'][0].message.content
+        result = openai.ChatCompletion.create(
+        messages=messages,
+        model=gpt_config.model if openai.api_type == "open_ai" else None,
+        deployment_id = gpt_config.get_azure_deployment_id(gpt_config.model) if openai.api_type == "azure" else None,
+        top_p=gpt_config.top_p,
+        presence_penalty=gpt_config.presence_penalty,
+        frequency_penalty=gpt_config.frequency_penalty,
+        max_tokens=gpt_config.max_tokens,
+        temperature=gpt_config.temperature
+        )
+    if result['choices'][0]["message"].get("content") is not None:
+        if clean_output:
+            return result['choices'][0]["message"]["content"].strip()
+        return result['choices'][0]["message"]["content"]
+
+    return json.loads(result['choices'][0]["message"]["function_call"]["arguments"])
 
 def create_chat_and_parse(messages, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(model="gpt-4"), clean_output = True, max_tries=2):
-    return generate_and_parse(gpt_function=lambda gpt_config: create_chat(messages, gpt_config, clean_output),
+    return generate_and_parse(gpt_function=lambda gpt_config: create_chat(messages, gpt_config, clean_output=clean_output),
                        parsing_function=parsing_function,
                        gpt_config=gpt_config,
                        max_tries=max_tries)
 
 def create_completion_and_parse(prompt, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(), clean_output = True, max_tries=2):
-    return generate_and_parse(gpt_function=lambda gpt_config: create_completion(prompt, gpt_config, clean_output),
+    return generate_and_parse(gpt_function=lambda gpt_config: create_completion(prompt, gpt_config, clean_output=clean_output),
                        parsing_function=parsing_function,
                        gpt_config=gpt_config,
                        max_tries=max_tries)
@@ -110,7 +127,7 @@ def generate_and_parse(gpt_function: Callable[[GPTConfig], str], parsing_functio
         except:
             if gpt_config.temperature < 0.3:
                 gpt_config.temperature += 0.1
-            pass
+
     else:
         raise ParsingError(f"Failed to parse output. GPT output: \n{output}")
 
