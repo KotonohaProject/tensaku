@@ -8,44 +8,61 @@ from datetime import datetime
 from retry import retry
 
 
+MODELS = [
+        {"name": "gpt-4", "azure_name": "gpt-4", "cost_prompt_per_k": 0.03, "cost_completion_per_k": 0.06},
+        {"name": "gpt-3.5-turbo", "azure_name": "gpt-35", "cost_prompt_per_k": 0.0015, "cost_completion_per_k": 0.002},
+    ]
+
 @dataclass
 class GPTConfig():
-  model: str = "text-davinci-003"
-  temperature: float = 0
-  max_tokens: int = 500
-  top_p: float = 1
-  presence_penalty: float = 0
-  frequency_penalty: float = 0
+    model: str = "gpt-4"
+    temperature: float = 0
+    max_tokens: int = 500
+    top_p: float = 1
+    presence_penalty: float = 0
+    frequency_penalty: float = 0
 
-  def get_azure_deployment_id(self, model: str) -> str:
-    conversion_dictionary = {
-        "gpt-4": "gpt-4",
-        "gpt-3.5-turbo": "gpt-35",
-    }
-    return conversion_dictionary.get(model, model)
+
+
+    def __post_init__(self):
+        assert self.model in [m["name"] for m in MODELS], f"model {self.model} is not supported"
+
+    def get_azure_deployment_id(self, model: str) -> str:
+        for m in MODELS:
+            if m["name"] == model:
+                return m["azure_name"]
+
+class InferenceLog():
+    prompt_tokens: int
+    completion_tokens: int
+    model: str
+
+class TokenLogger():
+    logs: list[InferenceLog] = []
+
+    def get_total_cost(self):
+        total_cost = 0
+        for log in self.logs:
+            cost_prompt_per_k = next(m["cost_prompt_per_k"] for m in MODELS if m["name"] == log.model)
+            cost_completion_per_k = next(m["cost_completion_per_k"] for m in MODELS if m["name"] == log.model)
+            total_cost += log.prompt_tokens * cost_prompt_per_k
+            total_cost += log.completion_tokens * cost_completion_per_k
+
+    def log(self, prompt_tokens: int, completion_tokens: int, model: str):
+        self.logs.append(InferenceLog(prompt_tokens=prompt_tokens, completion_tokens=completion_tokens, model=model))
 
 
 class ParsingError(Exception):
     pass
 
 
-def get_azure_deployment_id(model: str) -> str:
-    conversion_dictionary = {
-        "gpt-4": "gpt-4",
-        "gpt-3.5-turbo": "gpt-35",
-    }
-    deployment_id = conversion_dictionary.get(model)
-    if deployment_id is None:
-        raise ValueError(f"model {model} is not supported in azure")
-
-    return deployment_id
-
 
 @retry(tries=3, delay=5, backoff=2)
 def create_completion(prompt,
                       print_prompt=False,
                       gpt_config: GPTConfig = GPTConfig(),
-                      clean_output = True):
+                      clean_output = True,
+                      token_logger: TokenLogger = None):
     if print_prompt:
       print(prompt)
     result = openai.Completion.create(
@@ -59,6 +76,11 @@ def create_completion(prompt,
       temperature=gpt_config.temperature
     )
 
+    if token_logger:
+        prompt_tokens = result["usage"]["prompt_tokens"]
+        completion_tokens = result["usage"]["completion_tokens"]
+        token_logger.log(prompt_tokens=prompt_tokens, completion_tokens=completion_tokens, model=gpt_config.model)
+
     if clean_output:
       return result['choices'][0]['text'].strip()
     else:
@@ -69,7 +91,8 @@ def create_chat(messages,
                 gpt_config: GPTConfig = GPTConfig(model="gpt-4"),
                 functions = None,
                 function_call = "auto",
-                clean_output = True):
+                clean_output = True,
+                token_logger: TokenLogger = None):
     print("------------------------------------")
     print(messages)
     print("------------------------------------")
@@ -98,6 +121,12 @@ def create_chat(messages,
         max_tokens=gpt_config.max_tokens,
         temperature=gpt_config.temperature
         )
+
+    if token_logger:
+        prompt_tokens = result["usage"]["prompt_tokens"]["prompt_tokens"]
+        completion_tokens = result["usage"]["completion_tokens"]["completion_tokens"]
+        token_logger.log(prompt_tokens=prompt_tokens, completion_tokens=completion_tokens, model=gpt_config.model)
+
     if result['choices'][0]["message"].get("content") is not None:
         if clean_output:
             return result['choices'][0]["message"]["content"].strip()
@@ -105,14 +134,14 @@ def create_chat(messages,
 
     return json.loads(result['choices'][0]["message"]["function_call"]["arguments"])
 
-def create_chat_and_parse(messages, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(model="gpt-4"), clean_output = True, max_tries=2):
-    return generate_and_parse(gpt_function=lambda gpt_config: create_chat(messages, gpt_config, clean_output=clean_output),
+def create_chat_and_parse(messages, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(model="gpt-4"), clean_output = True, max_tries=2, token_logger: TokenLogger = None):
+    return generate_and_parse(gpt_function=lambda gpt_config: create_chat(messages, gpt_config, clean_output=clean_output, token_logger=token_logger),
                        parsing_function=parsing_function,
                        gpt_config=gpt_config,
                        max_tries=max_tries)
 
-def create_completion_and_parse(prompt, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(), clean_output = True, max_tries=2):
-    return generate_and_parse(gpt_function=lambda gpt_config: create_completion(prompt, gpt_config, clean_output=clean_output),
+def create_completion_and_parse(prompt, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(), clean_output = True, max_tries=2, token_logger: TokenLogger = None):
+    return generate_and_parse(gpt_function=lambda gpt_config: create_completion(prompt, gpt_config, clean_output=clean_output, token_logger=token_logger),
                        parsing_function=parsing_function,
                        gpt_config=gpt_config,
                        max_tries=max_tries)

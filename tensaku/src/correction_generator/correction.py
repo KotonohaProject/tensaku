@@ -8,6 +8,7 @@ from tensaku.utils.openai_utils import (
 )
 from tensaku.src.essay import Essay, split_into_sentences
 from tensaku.utils.utils import concat_examples
+from tensaku.utils.openai_utils import TokenLogger
 
 
 class CorrectionGenerator:
@@ -85,7 +86,7 @@ Input: It's heavy snow in Niigata prefecture. Some people is remaining in their 
     def __init__(self, print_prompt=False):
         self.print_prompt = print_prompt
 
-    def generate(self, essay_text: str) -> tuple[Essay, Essay]:
+    def generate(self, essay_text: str, token_logger: TokenLogger = None) -> tuple[Essay, Essay]:
         # count the number of periods
 
         messages = self.initial_conversation + [{"role": "user", "content": essay_text}]
@@ -95,6 +96,7 @@ Input: It's heavy snow in Niigata prefecture. Some people is remaining in their 
             gpt_config=self.gpt_config,
             function_call={"name": "answer"},
             functions=self.functions,
+            token_logger=token_logger,
         )
         print(output)
 
@@ -115,7 +117,7 @@ class NativeGenerator:
         self.print_prompt = print_prompt
 
     def generate(self, essay: Essay) -> Essay:
-        order_prompt = "Make the paragraph sound more natural. Use many words that are not in the original paragraph. Do not make it too complex."
+        order_prompt = "Make the paragraph sound more natural. Use many words that are not in the original paragraph. Do not make it too complex, and keep the essay simple. The essay should be elementary school level."
 
         messages = [
             {"role": "user", "content": f"{order_prompt}\n\n{essay.paragraph}\n\n"}
