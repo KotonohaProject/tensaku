@@ -123,8 +123,8 @@ def create_chat(messages,
         )
 
     if token_logger:
-        prompt_tokens = result["usage"]["prompt_tokens"]["prompt_tokens"]
-        completion_tokens = result["usage"]["completion_tokens"]["completion_tokens"]
+        prompt_tokens = result["usage"]["prompt_tokens"]
+        completion_tokens = result["usage"]["completion_tokens"]
         token_logger.log(prompt_tokens=prompt_tokens, completion_tokens=completion_tokens, model=gpt_config.model)
 
     if result['choices'][0]["message"].get("content") is not None:
