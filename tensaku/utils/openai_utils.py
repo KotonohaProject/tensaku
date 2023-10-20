@@ -32,6 +32,7 @@ class GPTConfig():
             if m["name"] == model:
                 return m["azure_name"]
 
+@dataclass
 class InferenceLog():
     prompt_tokens: int
     completion_tokens: int
