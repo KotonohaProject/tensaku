@@ -45,3 +45,4 @@ def test_generator():
     result_dictionary = all_tensaku_document_azure.generate_dict()
     result_dicionatry = asdict(all_tensaku_document_azure)
     result_json_string = json.dumps(result_dictionary)
+    print(result_json_string)

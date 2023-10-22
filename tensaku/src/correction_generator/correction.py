@@ -116,11 +116,11 @@ class NativeGenerator:
     def __init__(self, print_prompt=False):
         self.print_prompt = print_prompt
 
-    def generate(self, essay: Essay) -> Essay:
+    def generate(self, essay: Essay, token_logger: TokenLogger = None) -> Essay:
         order_prompt = "Make the paragraph sound more natural. Use many words that are not in the original paragraph. Do not make it too complex, and keep the essay simple. The essay should be elementary school level."
 
         messages = [
             {"role": "user", "content": f"{order_prompt}\n\n{essay.paragraph}\n\n"}
         ]
-        native_paragraph = create_chat(messages=messages)
+        native_paragraph = create_chat(messages=messages, token_logger=token_logger)
         return Essay(split_into_sentences(native_paragraph))

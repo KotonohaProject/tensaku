@@ -25,11 +25,11 @@ class NativeExplanationDocument(TensakuDocument):
         # convert markdown list to html list, and linebreak to <br>.
         in_list = False
         html_list = []
-        
+
         for explanation in self.explanations:
             html_list.append(f"<h3>{explanation.expression}</h3>")
             lines = explanation.expression_explanation.split("\n")
-            
+
             for line in lines:
                 if line.startswith("- "):
                     if not in_list:
@@ -41,11 +41,11 @@ class NativeExplanationDocument(TensakuDocument):
                         html_list.append("</ul>")
                         in_list = False
                 html_list.append(f"{line}<br>")
-        
+
         explanation =  "\n".join(html_list)
-        
+
         return explanation
-    
+
 
 
 @dataclass
@@ -76,9 +76,9 @@ class MistakeExplanationDocument(TensakuDocument):
             html_list.append("</ul>")
 
         explanation =  "\n".join(html_list)
-        
+
         return explanation
-    
+
 @dataclass
 class SentenceExplanationDocument(TensakuDocument):
     original_sentence: str
@@ -87,7 +87,7 @@ class SentenceExplanationDocument(TensakuDocument):
     japanese: bool
     complement_comment: Optional[str] = None
 
-    
+
     def generate_html(self):
         mistake_explanations_html = "".join([mistake_explanation.generate_html() for mistake_explanation in self.mistake_explanations])
         complement_comment_html = f"<p class='body-text'>{self.complement_comment}</p>" if self.complement_comment else ""
@@ -108,17 +108,17 @@ class MultipleChoiceQuizDocument(TensakuDocument):
     questions: list[str]
     answers: list[str]
     quiz_id: str = field(init=False)
-    
+
     def __post_init__(self):
         self.quiz_id = str(uuid1())
-        
+
     @classmethod
     def from_quiz_section(cls, quiz_section: str):
         lines = quiz_section.strip().split('\n')
         title = lines[2].split(': ')[1].strip()
         choices = lines[3].split(': ')[1].strip().split(', ')
         choices = [choice[2:] for choice in choices]
-        
+
         questions = []
         answers = []
         for line in lines[5:]:
@@ -129,9 +129,9 @@ class MultipleChoiceQuizDocument(TensakuDocument):
             answers.append(answer)
             question = re.sub(r'\[.*?\]', '____', line[3:])
             questions.append(question)
-        
+
         return cls(title, choices, questions, answers)
-    
+
     def generate_html(self):
         questions_html = ""
         for i, question in enumerate(self.questions):
@@ -139,7 +139,7 @@ class MultipleChoiceQuizDocument(TensakuDocument):
             for j, choice in enumerate(self.choices):
                 choices_html += f'<input type="radio" name="q{self.quiz_id}_{i+1}" value="{choice}" id="q{self.quiz_id}_{i+1}{j+1}"> <label for="q{self.quiz_id}_{i+1}{j+1}">{choice}</label>'
             questions_html += f'<li id="answer{self.quiz_id}_{i+1}" class="multiple-choice">{question} {choices_html}</li>'
-        
+
         return f"""
         <h3>{self.title}</h3>
         <ol>
@@ -166,16 +166,16 @@ class FreeAnswerQuizDocument(TensakuDocument):
     questions: list[str]
     answers: list[str]
     quiz_id: str = field(init=False)
-    
+
     def __post_init__(self):
         self.quiz_id = str(uuid1())
-        
+
     @classmethod
     def from_quiz_section(cls, quiz_section: str):
-    
+
         lines = quiz_section.strip().split('\n')
         title = lines[2].split(': ')[1].strip()
-        
+
         questions = []
         answers = []
         for line in lines[4:]:
@@ -183,15 +183,15 @@ class FreeAnswerQuizDocument(TensakuDocument):
             answers.append(answer)
             question = re.sub(r'\[.*?\]', '____', line[3:])
             questions.append(question)
-        
+
         return cls(title, questions, answers)
-    
-    
+
+
     def generate_html(self):
         questions_html = ""
         for i, question in enumerate(self.questions):
             questions_html += f'<li id="answer{self.quiz_id}_{i+1}">{question} <input type="text" id="q{self.quiz_id}_{i+1}"></li>'
-        
+
         return f"""
         <h3>{self.title}</h3>
         <ol>
@@ -212,11 +212,11 @@ class FreeAnswerQuizDocument(TensakuDocument):
             """
         return check_answers_js
 
-    
+
 @dataclass
 class QuizzesDocument(TensakuDocument):
     quizzes: list[FreeAnswerQuizDocument | MultipleChoiceQuizDocument]
-    
+
     def generate_html(self) -> str:
         return
 
@@ -284,7 +284,7 @@ style_text = """.container {
 	content: "- ";
 	position: absolute;
 	left: 0;
-} 
+}
 
 /* Decoration for perimeter */
 body {
@@ -432,7 +432,7 @@ input[type="radio"]:checked + label {
 }"""
 
 
-@dataclass 
+@dataclass
 class AllTensakuDocument(TensakuDocument):
     original_paragraph: str
     edited_paragraph: str
@@ -441,11 +441,12 @@ class AllTensakuDocument(TensakuDocument):
     comment: str
     sentence_wise_explanations: List[SentenceExplanationDocument]
     quizzes: QuizzesDocument
+    total_cost: int = 0
     VERSION: str = "0.0.1"
-    
+
     def generate_dict(self) -> dict:
         sentence_wise_explanations_list = []
-        
+
         for mistake_explanations in self.sentence_wise_explanations:
             sentence_wise_explanations_list.append({
                 "original_sentence": mistake_explanations.original_sentence,
@@ -456,14 +457,14 @@ class AllTensakuDocument(TensakuDocument):
                 } for mistake_explanation in mistake_explanations.mistake_explanations],
                 "complement_comment": mistake_explanations.complement_comment,
             })
-        
+
         native_explanation_list = []
         for native_explanation in self.native_explanation.explanations:
             native_explanation_list.append({
                 "expression": native_explanation.expression,
                 "explanation": native_explanation.expression_explanation,
             })
-        
+
         return {
             "version": self.VERSION,
             "original_paragraph": self.original_paragraph,
@@ -474,5 +475,3 @@ class AllTensakuDocument(TensakuDocument):
             "sentence_wise_explanations": sentence_wise_explanations_list,
             "quizzes": self.quizzes,
         }
-    
-

@@ -98,7 +98,7 @@ class TensakuGenerator:
         )
 
         native_example = (
-            NativeGenerator().generate(essay) if generate_native_example else None
+            NativeGenerator().generate(essay, token_logger=self.token_logger) if generate_native_example else None
         )
 
         if generate_native_explanation:
@@ -106,12 +106,12 @@ class TensakuGenerator:
                 native_example != None
             ), "native_example must be generated if you want to generate native_explanation"
             native_explanation = NativeExplanationGenerator().generate(
-                original=corrected_essay.paragraph, edited=native_example.paragraph
+                original=corrected_essay.paragraph, edited=native_example.paragraph, token_logger=self.token_logger
             )
         else:
             native_explanation = None
 
-        comment = create_comment(essay.paragraph) if generate_comment else None
+        comment = create_comment(essay.paragraph, token_logger=self.token_logger) if generate_comment else None
 
         all_tensaku_document = AllTensakuDocument(
             original_paragraph=essay.paragraph,
@@ -121,6 +121,7 @@ class TensakuGenerator:
             comment=comment,
             sentence_wise_explanations=all_explanations,
             quizzes=quizzes,
+            total_cost= self.token_logger.get_total_cost(),
         )
         self.all_tensaku_document = all_tensaku_document
 
