@@ -36,7 +36,7 @@ Output: 1-a It's heavy snow in Niigata prefecture.
 3-b They need a rescue, so the government of Niigata asked for disaster relief from JGSDF."""},
     ]
 
-    gpt_config = GPTConfig(model="gpt-4")
+    gpt_config = GPTConfig(model="gpt-4", max_tokens=1500)
 
     def __init__(self, print_prompt = False):
         self.print_prompt = print_prompt
