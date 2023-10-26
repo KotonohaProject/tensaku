@@ -56,6 +56,8 @@ class TokenLogger():
 class ParsingError(Exception):
     pass
 
+class JsonParsingError(Exception):
+    pass
 
 
 @retry(tries=3, delay=5, backoff=2)
@@ -133,7 +135,13 @@ def create_chat(messages,
             return result['choices'][0]["message"]["content"].strip()
         return result['choices'][0]["message"]["content"]
 
-    return json.loads(result['choices'][0]["message"]["function_call"]["arguments"])
+    try:
+        result =  json.loads(result['choices'][0]["message"]["function_call"]["arguments"])
+    except:
+        json_string = result['choices'][0]["message"]["function_call"]["arguments"]
+        raise JsonParsingError(f"Failed to parse json. Json string: \n{json_string}")
+
+    return result
 
 def create_chat_and_parse(messages, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(model="gpt-4"), clean_output = True, max_tries=2, token_logger: TokenLogger = None):
     return generate_and_parse(gpt_function=lambda gpt_config: create_chat(messages, gpt_config, clean_output=clean_output, token_logger=token_logger),
