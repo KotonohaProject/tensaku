@@ -13,6 +13,10 @@ MODELS = [
         {"name": "gpt-3.5-turbo", "azure_name": "gpt-35", "cost_prompt_per_k": 0.0015, "cost_completion_per_k": 0.002},
     ]
 
+client = openai.Client()
+
+SEED = 42
+
 @dataclass
 class GPTConfig():
     model: str = "gpt-4"
@@ -68,7 +72,7 @@ def create_completion(prompt,
                       token_logger: TokenLogger = None):
     if print_prompt:
       print(prompt)
-    result = openai.Completion.create(
+    result = client.completions.create(
       prompt=prompt,
       model=gpt_config.model if openai.api_type == "open_ai" else None,
       deployment_id = gpt_config.get_azure_deployment_id(gpt_config.model) if openai.api_type == "azure" else None,
@@ -80,14 +84,14 @@ def create_completion(prompt,
     )
 
     if token_logger:
-        prompt_tokens = result["usage"]["prompt_tokens"]
-        completion_tokens = result["usage"]["completion_tokens"]
+        prompt_tokens = result.usage.prompt_tokens
+        completion_tokens = result.usage.completion_tokens
         token_logger.log(prompt_tokens=prompt_tokens, completion_tokens=completion_tokens, model=gpt_config.model)
 
     if clean_output:
-      return result['choices'][0]['text'].strip()
+      return result.choices[0].text.strip()
     else:
-      return result['choices'][0]['text']
+      return result.choices[0].text
 
 @retry(tries=3, delay=5, backoff=2)
 def create_chat(messages,
@@ -101,12 +105,11 @@ def create_chat(messages,
     print("------------------------------------")
 
     if functions:
-        result = openai.ChatCompletion.create(
+        result = client.chat.completions.create(
         messages=messages,
-        model=gpt_config.model if openai.api_type == "open_ai" else None,
+        model=gpt_config.model if openai.api_type == "open_ai" else gpt_config.get_azure_deployment_id(gpt_config.model),
         function_call=function_call,
         functions=functions,
-        deployment_id = gpt_config.get_azure_deployment_id(gpt_config.model) if openai.api_type == "azure" else None,
         top_p=gpt_config.top_p,
         presence_penalty=gpt_config.presence_penalty,
         frequency_penalty=gpt_config.frequency_penalty,
@@ -114,10 +117,9 @@ def create_chat(messages,
         temperature=gpt_config.temperature
         )
     else:
-        result = openai.ChatCompletion.create(
+        result = client.chat.completions.create(
         messages=messages,
-        model=gpt_config.model if openai.api_type == "open_ai" else None,
-        deployment_id = gpt_config.get_azure_deployment_id(gpt_config.model) if openai.api_type == "azure" else None,
+        model=gpt_config.model if openai.api_type == "open_ai" else gpt_config.get_azure_deployment_id(gpt_config.model),
         top_p=gpt_config.top_p,
         presence_penalty=gpt_config.presence_penalty,
         frequency_penalty=gpt_config.frequency_penalty,
@@ -126,22 +128,15 @@ def create_chat(messages,
         )
 
     if token_logger:
-        prompt_tokens = result["usage"]["prompt_tokens"]
-        completion_tokens = result["usage"]["completion_tokens"]
+        prompt_tokens = result.usage.prompt_tokens
+        completion_tokens = result.usage.completion_tokens
         token_logger.log(prompt_tokens=prompt_tokens, completion_tokens=completion_tokens, model=gpt_config.model)
 
-    if result['choices'][0]["message"].get("content") is not None:
-        if clean_output:
-            return result['choices'][0]["message"]["content"].strip()
-        return result['choices'][0]["message"]["content"]
 
-    try:
-        result =  json.loads(result['choices'][0]["message"]["function_call"]["arguments"])
-    except:
-        json_string = result['choices'][0]["message"]["function_call"]["arguments"]
-        raise JsonParsingError(f"Failed to parse json. Json string: \n{json_string}")
-
-    return result
+    if clean_output:
+      return result.choices[0].message.content.strip()
+    else:
+      return result.choices[0].message.content
 
 def create_chat_and_parse(messages, parsing_function: Callable, gpt_config: GPTConfig = GPTConfig(model="gpt-4"), clean_output = True, max_tries=2, token_logger: TokenLogger = None):
     return generate_and_parse(gpt_function=lambda gpt_config: create_chat(messages, gpt_config, clean_output=clean_output, token_logger=token_logger),
