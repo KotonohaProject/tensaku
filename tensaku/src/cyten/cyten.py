@@ -153,9 +153,11 @@ def score_essay(essay: str, scoring_settings: ScoreSettings) -> dict:
     words_count = len(essay.split(" "))
     if scoring_settings.words_count.min and words_count < scoring_settings.words_count.min:
         scores = {target_skill.value: 0 for target_skill, setting in scoring_settings.score_categories.items()}
+        scores["total"] = 0
         return {"message": "too few words", "scores": scores}
     if scoring_settings.words_count.max and words_count > scoring_settings.words_count.max:
         scores = {target_skill.value: 0 for target_skill, setting in scoring_settings.score_categories.items()}
+        scores["total"] = 0
         return {"message": "too many words", "scores": scores}
 
     scores = {}
