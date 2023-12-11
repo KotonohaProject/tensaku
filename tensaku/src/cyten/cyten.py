@@ -206,7 +206,6 @@ def encode_image(image_path):
 
 
 def score_essay_with_vision(essay: str, image_path: str, scoring_settings: ScoreSettings) -> dict:
-    # TODO set the seed.
     base64_image = encode_image(image_path)
 
     skill_prompt = ""
@@ -306,9 +305,9 @@ OCR結果（誤りがある可能性あり）
     for category, info in result_dict.items():
         if not (0 <= info["score"] <= scoring_settings.score_categories[category].points_allocated):
             warnings.warn(f"Invalid score for {category}: {info['score']}")
-            raise ValueError(f"Invalid score for {category}: {info['score']}")
-        
-    return scores
+            raise ValueError(f"Invalid score for {category}: {info['score']}") 
+
+    return {"message": "success", "scores": scores}
     
 
 if __name__ == "__main__":
