@@ -41,6 +41,7 @@ score_settings = ScoreSettings(
     words_count=WordsCountSettings(
         min=60,
         max=120,
+        additional_info="最初の文は含めない。",
         subtractions=[
             SubtractionWithWordsLessThan(key=0, words_less_than=80, subtract_points=2),
             SubtractionWithWordsLessThan(key=1, words_less_than=70, subtract_points=4),
@@ -86,4 +87,8 @@ print(score_essay(essay, score_settings))
 short_essay="hey"
 print(score_essay(short_essay, score_settings))
 # {'message': 'too few words', 'scores': {'content': 0, 'vocabulary': 0, 'grammar': 0, 'total': 0}}
+
+# alternativly with images.
+image_path="image.png"
+score_essay_with_vision(essay, image_path, scoring_settings)
 ```
