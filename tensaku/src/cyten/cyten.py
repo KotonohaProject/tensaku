@@ -233,7 +233,7 @@ def score_essay_with_vision(essay: str, image_path: str, scoring_settings: Score
         skill_prompt += f"ワードカウント（word_count_textにワードカウントに使う文章を書いてください。）\n{scoring_settings.words_count.additional_info}\n"
         output_format_prompt += "word_count_text: ワードカウントに使う文章"   
 
-    prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのフォーマットに幻覚に従ってください。
+    prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのフォーマットに厳格に従ってください。
 OCR結果（誤りがある可能性あり）
 {essay}
 
