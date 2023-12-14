@@ -288,7 +288,8 @@ OCR結果（誤りがある可能性あり）
     scores = {}
 
     if scoring_settings.words_count:
-        words_count = len(result_dict["word_count_text"].split(" "))
+        word_count_text = result_dict["word_count_text"].split(" ")
+        words_count = len(word_count_text)
         if (
             scoring_settings.words_count.min
             and words_count < scoring_settings.words_count.min
@@ -324,6 +325,7 @@ OCR結果（誤りがある可能性あり）
         },
     )
 
+    result_dict_raw = result_dict.copy()
     del result_dict["word_count_text"]
     scores.update({category: info["score"] for category, info in result_dict.items()})
     scores["total"] = sum(scores.values())
@@ -338,7 +340,7 @@ OCR結果（誤りがある可能性あり）
             warnings.warn(f"Invalid score for {category}: {info['score']}")
             raise ValueError(f"Invalid score for {category}: {info['score']}")
 
-    return {"message": "success", "scores": scores}
+    return {"message": "success", "scores": scores, "details": result_dict_raw}
 
 
 if __name__ == "__main__":
