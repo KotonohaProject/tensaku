@@ -232,7 +232,7 @@ def score_essay_with_vision(essay: str, image_path: str, scoring_settings: Score
         skill_prompt += f"ワードカウント（word_count_textにワードカウントに使う文章を書いてください。）\n{scoring_settings.words_count.additional_info}\n"
         output_format_prompt += "word_count_text: ワードカウントに使う文章"   
 
-    prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのフォーマットに厳格に従ってください。
+    prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのフォーマットに幻覚に従ってください。
 OCR結果（誤りがある可能性あり）
 {essay}
 
@@ -242,7 +242,7 @@ OCR結果（誤りがある可能性あり）
 採点基準
 {skill_prompt}
 
-アウトプットのフォーマット（テキストは""で囲ってください。)
+アウトプットのフォーマット
 {output_format_prompt}
 
 """
@@ -262,7 +262,7 @@ OCR結果（誤りがある可能性あり）
             ],
             }
         ],
-        max_tokens=300,
+        max_tokens=2000,
         temperature=0,
         seed=SEED,
     )
@@ -356,6 +356,6 @@ if __name__ == "__main__":
         }
     )
 
-    essay = "I want to enjoy a day trip by plane / train / car. We can listen to music without the headphone. We can speak big voice, too. I don’t like crowded places, so I don’t have to meet other people. I want to enjoy speaking with my family.。"
+    essay = "I want to enjoy a day trip by plane / train / car. We can listen to music without the headphone. We can speak big voice, too. I don’t like crowded places, so I don’t have to meet other people. I want to enjoy speaking with my family."
     scores = score_essay_with_vision(essay, "tensaku/src/cyten/sample_image.png", score_settings)
     print(scores)
