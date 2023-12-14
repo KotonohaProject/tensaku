@@ -325,9 +325,10 @@ OCR結果（誤りがある可能性あり）
         },
     )
 
-    result_dict_raw = result_dict.copy()
     del result_dict["word_count_text"]
     scores.update({category: info["score"] for category, info in result_dict.items()})
+    explanations = {category: info["reason"] for category, info in result_dict.items()}
+    
     scores["total"] = sum(scores.values())
 
     # validate scores
@@ -340,7 +341,7 @@ OCR結果（誤りがある可能性あり）
             warnings.warn(f"Invalid score for {category}: {info['score']}")
             raise ValueError(f"Invalid score for {category}: {info['score']}")
 
-    return {"message": "success", "scores": scores, "details": result_dict_raw}
+    return {"message": "success", "scores": scores, "explanations": explanations}
 
 
 if __name__ == "__main__":
@@ -373,7 +374,8 @@ if __name__ == "__main__":
                         point=0, content="英文が書かれていない。または、全体を通して出題のテーマから外れたことが書かれている。"
                     ),
                     Criteria(
-                        point=1, content="使える語いが基本的なものに限られている。または、語いの誤りが多く、意図した内容が伝わらない。"
+                        point=1,
+                        content="使える語いが基本的なものに限られている。または、語いの誤りが多く、意図した内容が伝わらない。",
                     ),
                     Criteria(
                         point=2,
