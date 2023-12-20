@@ -367,7 +367,7 @@ if __name__ == "__main__":
                 Category.content: ScoreCategorySettings(
                     points_allocated=3,
                     criteria=[
-                        Criteria(point=0, content="または、全体を通して出題のテーマから外れたことが書かれている。"),
+                        Criteria(point=0, content="全体を通して出題のテーマから外れたことが書かれている。"),
                         Criteria(point=1, content="単語や文は書かれているが、内容のつながりが見られない。トピックに対する回答になっていない。"),
                         Criteria(point=2, content="いくつかのアイデアが書かれているが、内容のつながりが見えにくい。"),
                         Criteria(point=3, content="理由を挙げて立場を主張している。接続詞などが使用され、文章全体としてつながりがある。")
