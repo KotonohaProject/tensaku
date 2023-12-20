@@ -245,7 +245,10 @@ def score_essay_with_vision(
 
     if scoring_settings.words_count.additional_info:
         skill_prompt += f"ワードカウント（word_count_textにワードカウントに使う文章を書いてください。）\n{scoring_settings.words_count.additional_info}\n"
-        output_format_prompt += "word_count_text: 'ワードカウントに使う文章'"
+        output_format_prompt += "word_count_text: 'ワードカウントに使う文章'\n"
+    
+    output_format_prompt += "fixed_essay: 'エッセイの文法を修正したもの。変更は最小限にとどめて、文章の構造や内容には変更を加えないでください。接続詞は必要であれば追加してください'\n"
+    output_format_prompt += "comments:\n    - 'エッセイの内容について必要であれば[具体的に]改善点を一文でアドバイス。また、文法についても3文以内で理由も含めて[具体的な]なアドバイス。「例えば」などを使って具体的な改善案を示してください。(語彙や文構造のシンプルさについてはアドバイスしないでください、アドバイスごとにリストにしてください。）'"
 
     prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのフォーマットに幻覚に従ってください。
 OCR結果（誤りがある可能性あり）
@@ -288,7 +291,7 @@ OCR結果（誤りがある可能性あり）
     scores = {}
     
     for category, info in result_dict.items():
-        if category == "word_count_text":
+        if category == "word_count_text" or category == "fixed_essay" or category == "comments":
             continue
         result_dict[category]["score"] = int(info["score"])
 
@@ -329,15 +332,15 @@ OCR結果（誤りがある可能性あり）
             if isinstance(subtraction, SubtractionWithWordsLessThan)
         },
     )
-
-    del result_dict["word_count_text"]
-    scores.update({category: info["score"] for category, info in result_dict.items()})
-    explanations = {category: info["reason"] for category, info in result_dict.items()}
+    
+    score_dict = {category: info for category, info in result_dict.items() if category != "word_count_text" and category != "fixed_essay" and category != "comments"}
+    scores.update({category: info["score"] for category, info in score_dict.items()})
+    explanations = {category: info["reason"] for category, info in score_dict.items()}
     
     scores["total"] = sum(scores.values())
 
     # validate scores
-    for category, info in result_dict.items():
+    for category, info in score_dict.items():
         if not (
             0
             <= info["score"]
@@ -346,7 +349,7 @@ OCR結果（誤りがある可能性あり）
             warnings.warn(f"Invalid score for {category}: {info['score']}")
             raise ValueError(f"Invalid score for {category}: {info['score']}")
 
-    return {"message": "success", "scores": scores, "explanations": explanations}
+    return {"message": "success", "scores": scores, "explanations": explanations, "fixed_essay": result_dict["fixed_essay"], "comments": result_dict["comments"]}
 
 
 if __name__ == "__main__":
