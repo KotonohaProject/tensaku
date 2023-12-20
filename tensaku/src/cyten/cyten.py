@@ -247,10 +247,10 @@ def score_essay_with_vision(
         skill_prompt += f"ワードカウント（word_count_textにワードカウントに使う文章を書いてください。）\n{scoring_settings.words_count.additional_info}\n"
         output_format_prompt += "word_count_text: 'ワードカウントに使う文章'\n"
     
-    output_format_prompt += "fixed_essay: 'エッセイの文法を修正したもの。変更は最小限にとどめて、文章の構造や内容には変更を加えないでください。接続詞は必要であれば追加してください'\n"
-    output_format_prompt += "comments:\n    - 'エッセイの内容について必要であれば[具体的に]改善点を一文でアドバイス。また、文法についても3文以内で理由も含めて[具体的な]なアドバイス。「例えば」などを使って具体的な改善案を示してください。(語彙や文構造のシンプルさについてはアドバイスしないでください、アドバイスごとにリストにしてください。）'"
+    output_format_prompt += "fixed_essay: 'エッセイの修正したもの。文法を修正し、接続表現(Also, Moreoverなど)などを追加したり、必要であれば順番を変更してパラグラフ全体の流れを改善してください。アイデアには変更を加えないでください。単語はオリジナルの英文と同じものをできるだけ使って、文構造もシンプルなものだけを使ってください(A1-A2)。'\n"
+    output_format_prompt += "comments:\n    - 'エッセイの内容についてクリティカルなミスがあれば、改善点を一文でアドバイス。また、明らかな文法ミスについても3文以内で理由も含めて[具体的な]なアドバイス。「例えば」などを使って具体的な改善案を示してください。(アドバイスごとにリストにしてください。語彙や文構造の豊富さについてはアドバイスしないでください。）'"
 
-    prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのフォーマットに幻覚に従ってください。
+    prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのフォーマットに厳格に従ってください。
 OCR結果（誤りがある可能性あり）
 {essay}
 
@@ -260,7 +260,7 @@ OCR結果（誤りがある可能性あり）
 採点基準
 {skill_prompt}
 
-アウトプットのフォーマット (クオーテーションマーク' でテキストを必ず囲ってください)
+アウトプットのフォーマット (クオーテーションマーク' でテキストを必ず囲ってください。' は '' に変換して、エスケープしてください(I'm -> I''m)。)
 {output_format_prompt}
 
 """
@@ -354,84 +354,43 @@ OCR結果（誤りがある可能性あり）
 
 if __name__ == "__main__":
     score_settings = ScoreSettings(
-        topic="Which transportation method do you like?",
-        words_count=WordsCountSettings(
-            min=10,
-            max=120,
-            additional_info="最初の'I want to enjoy a day trip by + 交通機関'は語数に含めない。",
-            subtractions=[
-                SubtractionWithWordsLessThan(
-                    key=0, words_less_than=80, subtract_points=2
-                ),
-                SubtractionWithWordsLessThan(
-                    key=1, words_less_than=70, subtract_points=4
-                ),
-                SubtractionWithWordsMoreThan(
-                    key=2, words_more_than=100, subtract_points=2
-                ),
-                SubtractionWithWordsMoreThan(
-                    key=3, words_more_than=120, subtract_points=4
-                ),
-            ],
-        ),
-        score_categories={
-            Category.content: ScoreCategorySettings(
-                points_allocated=4,
-                criteria=[
-                    Criteria(
-                        point=0, content="英文が書かれていない。または、全体を通して出題のテーマから外れたことが書かれている。"
-                    ),
-                    Criteria(
-                        point=1,
-                        content="使える語いが基本的なものに限られている。または、語いの誤りが多く、意図した内容が伝わらない。",
-                    ),
-                    Criteria(
-                        point=2,
-                        content="使える語いが限られている。または、意味理解を妨げるような誤りが見られ、意図した内容が伝わりにくい部分が多くある。",
-                    ),
-                    Criteria(
-                        point=3,
-                        content="必要な語いを使って、簡単な内容を表現することができる。誤りがあっても、意図した内容を伝えることができている。",
-                    ),
-                    Criteria(
-                        point=4,
-                        content="さまざまな語いを使って、自分の考えや物事を詳しく説明することができる。一部誤りがあっても、意図した内容を十分に伝えることができている。",
-                    ),
-                ],
+            topic="あなたは，今週末に日帰りの旅行に行く予定である。どの交通機関を使って目的地に行くかを家族と話し合っている。あなたはどれを利用したいか，利用したい交通機関を次の三つから一つ選んで丸で囲み、書け。",
+            words_count=WordsCountSettings(
+                min=25,
+                max=100,
+                additional_info='最初の"I want to enjoy a day trip by + 交通機関"は語数に含めない。残りの文章を語数として数えるので、それを出力してください。',
+                subtractions=[
+                    SubtractionWithWordsLessThan(key=0, words_less_than=30, subtract_points=2),
+                ]
             ),
-            Category.vocabulary: ScoreCategorySettings(
-                points_allocated=3,
-                criteria=[
-                    Criteria(
-                        point=0, content="英文が書かれていない。または、全体を通して出題のテーマから外れたことが書かれている。"
-                    ),
-                    Criteria(point=1, content="定型表現を使うことや、いくつかの単語を組み合わせることはできる。"),
-                    Criteria(
-                        point=2,
-                        content="使える文法が限られている。または、意味理解を妨げるような誤りが見られ、意図した内容が伝わりにくい部分が多くある。",
-                    ),
-                    Criteria(
-                        point=3,
-                        content="基本的な文法に加えて、複雑な文法を使うことができる。一部誤りがあっても、意図した内容を十分に伝えることができている。",
-                    ),
-                ],
-            ),
-            Category.grammar: ScoreCategorySettings(
-                points_allocated=3,
-                criteria=[
-                    Criteria(
-                        point=0, content="英文が書かれていない。または、全体を通して出題のテーマから外れたことが書かれている。"
-                    ),
-                    Criteria(point=1, content="単語や文は書かれているが、内容のつながりが見られない。"),
-                    Criteria(point=2, content="いくつかのアイデアが書かれているが、内容のつながりが見えにくい。"),
-                    Criteria(
-                        point=3,
-                        content="基本的な文法に加えて、複雑な文法を使うことができる。一部誤りがあっても、意図した内容を十分に伝えることができている。",
-                    ),
-                ],
-            ),
-        },
-    )
+            score_categories={
+                Category.content: ScoreCategorySettings(
+                    points_allocated=3,
+                    criteria=[
+                        Criteria(point=0, content="または、全体を通して出題のテーマから外れたことが書かれている。"),
+                        Criteria(point=1, content="単語や文は書かれているが、内容のつながりが見られない。トピックに対する回答になっていない。"),
+                        Criteria(point=2, content="いくつかのアイデアが書かれているが、内容のつながりが見えにくい。"),
+                        Criteria(point=3, content="理由を挙げて立場を主張している。接続詞などが使用され、文章全体としてつながりがある。")
+                    ]
+                ),
+                Category.vocabulary: ScoreCategorySettings(
+                    points_allocated=3,
+                    criteria=[
+                        Criteria(point=0, content="または、文脈に一致しないない単語が多用されており、内容の理解を妨げている。"),
+                        Criteria(point=2, content="非常に基本的な単語しか使われていないが、正しく使用されている。"),
+                        Criteria(point=3, content="文脈において、適切な単語を使用できている。")
+                    ]
+                ),
+                Category.grammar: ScoreCategorySettings(
+                    points_allocated=2,
+                    criteria=[
+                        Criteria(point=0, content="深刻な文法ミスが多発していて、内容の理解を妨げている。"),
+                        Criteria(point=1, content="いくつか文法ミスがあるが、基本的な文法を使って意図した内容を伝えることができている。"),
+                        Criteria(point=2, content="ほとんど、文法ミスがない。")
+                    ]
+                )
+            }
+        )
 
     essay = "I want to enjoy a day trip by plane / train / car. We can listen to music without the headphone. We can speak big voice, too. I don’t like crowded places, so I don’t have to meet other people. I want to enjoy speaking with my family.。"
     scores = score_essay_with_vision(
