@@ -228,13 +228,13 @@ def score_essay_with_vision(
     for target_skill, settings in scoring_settings.score_categories.items():
         if target_skill == Category.content:
             skill_prompt += f"内容と構成({settings.points_allocated}点満点)\n"
-            output_format_prompt += "content:\n  reason: 理由\n  score: 整数値\n"
+            output_format_prompt += "content:\n  reason: '理由'\n  score: '整数値'\n"
         elif target_skill == Category.vocabulary:
             skill_prompt += f"語彙({settings.points_allocated}点満点)\n"
-            output_format_prompt += "grammar:\n  reason: 理由\n  score: 整数値\n"
+            output_format_prompt += "grammar:\n  reason: '理由'\n  score: '整数値'\n"
         elif target_skill == Category.grammar:
             skill_prompt += f"文法({settings.points_allocated}点満点)\n"
-            output_format_prompt += "vocabulary:\n  reason: 理由\n  score: 整数値\n"
+            output_format_prompt += "vocabulary:\n  reason: 理由\n  score: '整数値'\n"
         else:
             raise ValueError(f"Invalid target skill: {target_skill}")
         criteria = sorted(settings.criteria, key=lambda item: item.point)
@@ -245,7 +245,7 @@ def score_essay_with_vision(
 
     if scoring_settings.words_count.additional_info:
         skill_prompt += f"ワードカウント（word_count_textにワードカウントに使う文章を書いてください。）\n{scoring_settings.words_count.additional_info}\n"
-        output_format_prompt += "word_count_text: ワードカウントに使う文章"
+        output_format_prompt += "word_count_text: 'ワードカウントに使う文章'"
 
     prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのフォーマットに幻覚に従ってください。
 OCR結果（誤りがある可能性あり）
@@ -257,7 +257,7 @@ OCR結果（誤りがある可能性あり）
 採点基準
 {skill_prompt}
 
-アウトプットのフォーマット
+アウトプットのフォーマット (クオーテーションマーク' でテキストを必ず囲ってください)
 {output_format_prompt}
 
 """
@@ -286,6 +286,11 @@ OCR結果（誤りがある可能性あり）
     result_dict = yaml.safe_load(response.choices[0].message.content)
     print(result_dict)
     scores = {}
+    
+    for category, info in result_dict.items():
+        if category == "word_count_text":
+            continue
+        result_dict[category]["score"] = int(info["score"])
 
     if scoring_settings.words_count:
         word_count_text = result_dict["word_count_text"].split(" ")
