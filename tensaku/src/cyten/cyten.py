@@ -231,10 +231,10 @@ def score_essay_with_vision(
             output_format_prompt += "content:\n  reason: '理由'\n  score: '整数値'\n"
         elif target_skill == Category.vocabulary:
             skill_prompt += f"語彙({settings.points_allocated}点満点)\n"
-            output_format_prompt += "grammar:\n  reason: '理由'\n  score: '整数値'\n"
+            output_format_prompt += "vocabulary:\n  reason: '理由'\n  score: '整数値'\n"
         elif target_skill == Category.grammar:
             skill_prompt += f"文法({settings.points_allocated}点満点)\n"
-            output_format_prompt += "vocabulary:\n  reason: 理由\n  score: '整数値'\n"
+            output_format_prompt += "grammar:\n  reason: 理由\n  score: '整数値'\n"
         else:
             raise ValueError(f"Invalid target skill: {target_skill}")
         criteria = sorted(settings.criteria, key=lambda item: item.point)
@@ -247,20 +247,24 @@ def score_essay_with_vision(
         skill_prompt += f"ワードカウント（word_count_textにワードカウントに使う文章を書いてください。）\n{scoring_settings.words_count.additional_info}\n"
         output_format_prompt += "word_count_text: 'ワードカウントに使う文章'\n"
 
-    output_format_prompt += "fixed_essay: 'エッセイの修正したもの。文法を修正し、接続表現(Also, Moreoverなど)などを追加したり、必要であれば順番を変更してパラグラフ全体の流れを改善してください。アイデアには変更を加えないでください。単語はオリジナルの英文と同じものをできるだけ使って、文構造もシンプルなものだけを使ってください(A1-A2)。'\n"
+    output_format_prompt += "fixed_essay: 'エッセイの修正したもの。文法を修正し、接続表現(First, Alsoなど)などを追加したり、必要であれば順番を変更してパラグラフ全体の流れを改善してください。アイデアには変更を加えないでください。単語はオリジナルの英文と同じものをできるだけ使って、文構造もシンプルなものだけを使ってください(CEFR: A1-A2)。'\n"
     output_format_prompt += "comments:\n    - 'エッセイの内容についてクリティカルなミスがあれば、改善点を一文でアドバイス。また、明らかな文法ミスについても3文以内で理由も含めて[具体的な]なアドバイス。「例えば」などを使って具体的な改善案を示してください。(アドバイスごとにリストにしてください。語彙や文構造の豊富さについてはアドバイスしないでください。）'"
 
     prompt = f"""生徒のエッセイの内容と構成を日本語で採点してください。アウトプットをコードでパースするので、アウトプットのYAMLフォーマットに厳格に従ってください。
-OCR結果（誤りがある可能性あり）
+# OCR結果（誤りがある可能性あり）
 {essay}
 
-トピック
+# トピック
 {scoring_settings.topic}
 
-採点基準
+# 採点基準
 {skill_prompt}
 
-アウトプットのフォーマット (シングルクオーテーション' でテキストを必ず囲ってください。' は '' に変換して、エスケープしてください(I'm -> I''m)。)
+# アウトプットのフォーマット
+シングルクオーテーション' でテキストを必ず囲ってください。
+必ず' は'' ('を2個) に変換して、エスケープしてください！
+(例: I'm -> I''m)
+
 {output_format_prompt}
 
 """
